@@ -35,6 +35,8 @@ if(BSE_BUILD_TESTS)
 endif()
 
 if(BSE_BUILD_EXAMPLES)
+    add_executable(bse_seedgen tools/generate_seed_corpus.cpp)
+    target_link_libraries(bse_seedgen PRIVATE binary_scene_engine)
     add_executable(bse_dump examples/dump_scene.cpp)
     target_link_libraries(bse_dump PRIVATE binary_scene_engine)
     add_executable(bse_roundtrip examples/roundtrip.cpp)
