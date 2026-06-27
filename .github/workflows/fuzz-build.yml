@@ -1,0 +1,17 @@
+name: fuzz-build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  fuzz-targets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure fuzz targets
+        run: cmake -S . -B build-fuzz -DBSE_BUILD_TESTS=OFF -DBSE_BUILD_EXAMPLES=OFF -DBSE_BUILD_FUZZERS=ON
+      - name: Build fuzz targets
+        run: cmake --build build-fuzz --parallel
