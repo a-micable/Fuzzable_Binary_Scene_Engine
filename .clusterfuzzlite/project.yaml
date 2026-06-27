@@ -1,0 +1,7 @@
+language: c++
+main_repo: local/binary-scene-engine
+sanitizers:
+  - address
+  - undefined
+fuzzing_engines:
+  - libfuzzer

@@ -1,0 +1,9 @@
+build/
+build-*/
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+.cache/
+.DS_Store
