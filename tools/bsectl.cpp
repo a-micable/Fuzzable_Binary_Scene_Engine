@@ -1,6 +1,13 @@
 #include "bse/parser.hpp"
+#include "bse/package_index.hpp"
+#include "bse/scene_diff.hpp"
+#include "bse/scene_lint.hpp"
+#include "bse/scene_ops.hpp"
+#include "bse/scene_query.hpp"
+#include "bse/scene_stats.hpp"
 #include "bse/serializer.hpp"
 #include "bse/scene.hpp"
+#include "bse/text_scene.hpp"
 #include "bse/validator.hpp"
 
 #include <fstream>
@@ -30,8 +37,32 @@ bool WriteFile(const std::string& path, const std::vector<std::uint8_t>& bytes) 
   return out.good();
 }
 
+bool WriteTextFile(const std::string& path, const std::string& text) {
+  std::ofstream out(path, std::ios::binary);
+  out << text;
+  return out.good();
+}
+
+std::string BytesToText(const std::vector<std::uint8_t>& bytes) {
+  return std::string(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+}
+
 void PrintUsage() {
-  std::cerr << "usage: bsectl <inspect|validate|create-minimal|create-sample> <path>\n";
+  std::cerr
+      << "usage:\n"
+      << "  bsectl create-minimal <out.bsen>\n"
+      << "  bsectl create-sample <out.bsen>\n"
+      << "  bsectl inspect <scene.bsen>\n"
+      << "  bsectl validate <scene.bsen>\n"
+      << "  bsectl stats <scene.bsen>\n"
+      << "  bsectl audit <scene.bsen>\n"
+      << "  bsectl lint <scene.bsen>\n"
+      << "  bsectl find <scene.bsen> <name-fragment>\n"
+      << "  bsectl normalize <in.bsen> <out.bsen>\n"
+      << "  bsectl export-text <in.bsen> <out.bsetxt>\n"
+      << "  bsectl import-text <in.bsetxt> <out.bsen>\n"
+      << "  bsectl diff <left.bsen> <right.bsen>\n"
+      << "  bsectl validate-manifest <manifest.txt>\n";
 }
 
 bse::Scene MakeSampleScene() {
@@ -89,10 +120,31 @@ bse::Scene MakeSampleScene() {
   return scene;
 }
 
+bse::Result<bse::Scene> ReadScene(const std::string& path) {
+  auto bytes = ReadFile(path);
+  if (!bytes.ok()) {
+    return bytes.status();
+  }
+  return bse::ParseScene(bytes.value());
+}
+
+int WriteScene(const std::string& path, const bse::Scene& scene) {
+  auto bytes = bse::SerializeScene(scene);
+  if (!bytes.ok()) {
+    std::cerr << bytes.status().message() << "\n";
+    return 1;
+  }
+  if (!WriteFile(path, bytes.value())) {
+    std::cerr << "failed to write " << path << "\n";
+    return 1;
+  }
+  return 0;
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
-  if (argc != 3) {
+  if (argc < 3) {
     PrintUsage();
     return 2;
   }
@@ -115,12 +167,61 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  auto bytes = ReadFile(path);
-  if (!bytes.ok()) {
-    std::cerr << bytes.status().message() << "\n";
-    return 1;
+  if (command == "import-text") {
+    if (argc != 4) {
+      PrintUsage();
+      return 2;
+    }
+    auto bytes = ReadFile(path);
+    if (!bytes.ok()) {
+      std::cerr << bytes.status().message() << "\n";
+      return 1;
+    }
+    auto scene = bse::ParseTextScene(BytesToText(bytes.value()));
+    if (!scene.ok()) {
+      std::cerr << scene.status().message() << "\n";
+      return 1;
+    }
+    return WriteScene(argv[3], scene.value());
   }
-  auto scene = bse::ParseScene(bytes.value());
+
+  if (command == "validate-manifest") {
+    auto bytes = ReadFile(path);
+    if (!bytes.ok()) {
+      std::cerr << bytes.status().message() << "\n";
+      return 1;
+    }
+    auto index = bse::ParsePackageManifest(BytesToText(bytes.value()));
+    if (!index.ok()) {
+      std::cerr << index.status().message() << "\n";
+      return 1;
+    }
+    std::cout << "package: " << index.value().name << "\n";
+    std::cout << "entries: " << index.value().entries.size() << "\n";
+    return 0;
+  }
+
+  if (command == "diff") {
+    if (argc != 4) {
+      PrintUsage();
+      return 2;
+    }
+    auto left = ReadScene(path);
+    auto right = ReadScene(argv[3]);
+    if (!left.ok()) {
+      std::cerr << left.status().message() << "\n";
+      return 1;
+    }
+    if (!right.ok()) {
+      std::cerr << right.status().message() << "\n";
+      return 1;
+    }
+    auto diff = bse::DiffScenes(left.value(), right.value());
+    std::cout << bse::FormatDiff(diff);
+    return diff.empty() ? 0 : 1;
+  }
+
+  auto scene = ReadScene(path);
   if (!scene.ok()) {
     std::cerr << scene.status().message() << "\n";
     return 1;
@@ -133,6 +234,71 @@ int main(int argc, char** argv) {
       std::cerr << diagnostic.code << ": " << diagnostic.message << "\n";
     }
     return status.ok() ? 0 : 1;
+  }
+
+  if (command == "stats") {
+    std::cout << bse::FormatSceneStats(bse::ComputeSceneStats(scene.value()));
+    auto bounds = bse::ComputeSceneBounds(scene.value());
+    if (bounds.valid) {
+      std::cout << "bounds_min=" << bounds.min.x << "," << bounds.min.y << "," << bounds.min.z
+                << "\n";
+      std::cout << "bounds_max=" << bounds.max.x << "," << bounds.max.y << "," << bounds.max.z
+                << "\n";
+    }
+    return 0;
+  }
+
+  if (command == "audit") {
+    auto issues = bse::AuditSceneStructure(scene.value());
+    for (const auto& issue : issues) {
+      std::cout << issue.code << " " << issue.subject << ": " << issue.message << "\n";
+    }
+    return issues.empty() ? 0 : 1;
+  }
+
+  if (command == "lint") {
+    auto findings = bse::LintScene(scene.value());
+    std::cout << bse::FormatLintFindings(findings);
+    return bse::HasLintErrors(findings) ? 1 : 0;
+  }
+
+  if (command == "find") {
+    if (argc != 4) {
+      PrintUsage();
+      return 2;
+    }
+    auto results = bse::QueryByName(scene.value(), argv[3]);
+    std::cout << bse::FormatQueryResults(results);
+    return results.empty() ? 1 : 0;
+  }
+
+  if (command == "normalize") {
+    if (argc != 4) {
+      PrintUsage();
+      return 2;
+    }
+    auto normalized = scene.value();
+    bse::NormalizeOptions options;
+    options.drop_unreferenced_resources = true;
+    bse::NormalizeScene(&normalized, options);
+    return WriteScene(argv[3], normalized);
+  }
+
+  if (command == "export-text") {
+    if (argc != 4) {
+      PrintUsage();
+      return 2;
+    }
+    auto text = bse::WriteTextScene(scene.value());
+    if (!text.ok()) {
+      std::cerr << text.status().message() << "\n";
+      return 1;
+    }
+    if (!WriteTextFile(argv[3], text.value())) {
+      std::cerr << "failed to write " << argv[3] << "\n";
+      return 1;
+    }
+    return 0;
   }
 
   if (command == "inspect") {

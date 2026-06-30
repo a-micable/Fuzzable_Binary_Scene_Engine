@@ -21,10 +21,18 @@ add_library(binary_scene_engine
   src/bse/compression.cpp
   src/bse/diagnostics.cpp
   src/bse/format.cpp
+  src/bse/package_index.cpp
   src/bse/parser.cpp
   src/bse/resource_cache.cpp
   src/bse/scene.cpp
+  src/bse/scene_diff.cpp
+  src/bse/scene_lint.cpp
+  src/bse/scene_ops.cpp
+  src/bse/scene_query.cpp
+  src/bse/scene_stats.cpp
   src/bse/serializer.cpp
+  src/bse/text_scene.cpp
+  src/bse/transform.cpp
   src/bse/validator.cpp)
 
 target_include_directories(binary_scene_engine
@@ -48,7 +56,9 @@ if(BSE_BUILD_TESTS)
   foreach(test_name
       test_binary_io
       test_compression
+      test_scene_tools
       test_parser_serializer
+      test_package_index
       test_resource_cache
       test_validation)
     add_executable(${test_name} tests/${test_name}.cpp)
