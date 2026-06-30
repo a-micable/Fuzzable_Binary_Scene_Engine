@@ -1,0 +1,7 @@
+language: c++
+main_repo: https://github.com/a-micable/Fuzzable_Binary_Scene_Engine
+sanitizers:
+  - address
+  - undefined
+fuzzing_engines:
+  - libfuzzer
