@@ -18,21 +18,37 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_library(binary_scene_engine
   src/bse/binary_reader.cpp
   src/bse/binary_writer.cpp
+  src/bse/binary_inspector.cpp
+  src/bse/animation_tools.cpp
+  src/bse/asset_catalog.cpp
   src/bse/compression.cpp
+  src/bse/corpus_tools.cpp
   src/bse/diagnostics.cpp
   src/bse/format.cpp
+  src/bse/mesh_tools.cpp
+  src/bse/obj_io.cpp
   src/bse/package_index.cpp
   src/bse/parser.cpp
   src/bse/resource_cache.cpp
   src/bse/scene.cpp
+  src/bse/scene_builder.cpp
+  src/bse/scene_collection.cpp
   src/bse/scene_diff.cpp
+  src/bse/scene_graph.cpp
   src/bse/scene_lint.cpp
+  src/bse/scene_manifest.cpp
+  src/bse/scene_metrics.cpp
+  src/bse/scene_mutator.cpp
   src/bse/scene_ops.cpp
+  src/bse/scene_optimizer.cpp
   src/bse/scene_query.cpp
+  src/bse/scene_report.cpp
+  src/bse/scene_signature.cpp
   src/bse/scene_stats.cpp
   src/bse/serializer.cpp
   src/bse/text_scene.cpp
   src/bse/transform.cpp
+  src/bse/validation_profile.cpp
   src/bse/validator.cpp)
 
 target_include_directories(binary_scene_engine
