@@ -366,6 +366,15 @@ void AnalyzesGraphsAndManifests() {
   BSE_EXPECT_TRUE(bse::WriteManifestMarkdown(manifest).find("Resources") != std::string::npos);
   BSE_EXPECT_TRUE(bse::WriteManifestDot(manifest).find("digraph") != std::string::npos);
   BSE_EXPECT_TRUE(bse::ValidateManifestConsistency(manifest).empty());
+
+  auto cyclic = scene;
+  cyclic.nodes.front().children = {2};
+  cyclic.nodes.back().children = {1};
+  auto cyclic_graph = bse::BuildSceneGraph(cyclic);
+  BSE_EXPECT_TRUE(bse::GraphHasCycles(cyclic_graph));
+  BSE_EXPECT_EQ(bse::TraverseDepthFirst(cyclic_graph).size(), 2U);
+  BSE_EXPECT_EQ(bse::TraverseBreadthFirst(cyclic_graph).size(), 2U);
+  BSE_EXPECT_EQ(bse::DescendantsOf(cyclic_graph, 1).size(), 1U);
 }
 
 }  // namespace

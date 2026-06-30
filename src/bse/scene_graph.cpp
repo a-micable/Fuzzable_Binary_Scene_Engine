@@ -71,15 +71,21 @@ std::string JoinPath(const std::vector<ObjectId>& ids) {
 }
 
 void TraverseDepthFirstFrom(const SceneGraph& graph, ObjectId id, std::vector<ObjectId>* path,
+                            std::unordered_set<ObjectId>* active,
+                            std::unordered_set<ObjectId>* visited,
                             std::vector<GraphTraversalStep>* steps) {
   auto found = graph.nodes.find(id);
   if (found == graph.nodes.end()) return;
+  if (active->find(id) != active->end() || visited->find(id) != visited->end()) return;
+  active->insert(id);
   path->push_back(id);
   steps->push_back({id, path->size() - 1U, JoinPath(*path)});
   for (ObjectId child : found->second.children) {
-    TraverseDepthFirstFrom(graph, child, path, steps);
+    TraverseDepthFirstFrom(graph, child, path, active, visited, steps);
   }
   path->pop_back();
+  active->erase(id);
+  visited->insert(id);
 }
 
 }  // namespace
@@ -116,14 +122,19 @@ SceneGraph BuildSceneGraph(const Scene& scene) {
 std::vector<GraphTraversalStep> TraverseDepthFirst(const SceneGraph& graph) {
   std::vector<GraphTraversalStep> steps;
   std::vector<ObjectId> path;
-  for (ObjectId root : graph.roots) TraverseDepthFirstFrom(graph, root, &path, &steps);
+  std::unordered_set<ObjectId> active;
+  std::unordered_set<ObjectId> visited;
+  for (ObjectId root : graph.roots) TraverseDepthFirstFrom(graph, root, &path, &active, &visited, &steps);
   return steps;
 }
 
 std::vector<GraphTraversalStep> TraverseBreadthFirst(const SceneGraph& graph) {
   std::vector<GraphTraversalStep> steps;
   std::deque<std::vector<ObjectId>> queue;
-  for (ObjectId root : graph.roots) queue.push_back({root});
+  std::unordered_set<ObjectId> seen;
+  for (ObjectId root : graph.roots) {
+    if (seen.insert(root).second) queue.push_back({root});
+  }
   while (!queue.empty()) {
     auto path = queue.front();
     queue.pop_front();
@@ -132,6 +143,7 @@ std::vector<GraphTraversalStep> TraverseBreadthFirst(const SceneGraph& graph) {
     auto found = graph.nodes.find(id);
     if (found == graph.nodes.end()) continue;
     for (ObjectId child : found->second.children) {
+      if (!seen.insert(child).second) continue;
       auto child_path = path;
       child_path.push_back(child);
       queue.push_back(std::move(child_path));
@@ -159,9 +171,12 @@ std::vector<ObjectId> DescendantsOf(const SceneGraph& graph, ObjectId id) {
   auto found = graph.nodes.find(id);
   if (found == graph.nodes.end()) return descendants;
   std::deque<ObjectId> queue(found->second.children.begin(), found->second.children.end());
+  std::unordered_set<ObjectId> seen;
+  seen.insert(id);
   while (!queue.empty()) {
     ObjectId current = queue.front();
     queue.pop_front();
+    if (!seen.insert(current).second) continue;
     descendants.push_back(current);
     auto child = graph.nodes.find(current);
     if (child == graph.nodes.end()) continue;
