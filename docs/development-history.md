@@ -13,3 +13,5 @@ Recommended sequence toward a larger history:
 5. Add seed generators for materials, skeletons, cameras, and lights.
 6. Add sanitizer CI and ClusterFuzzLite regression corpus checks.
 7. Harden serializers against oversized counts and invalid references.
+
+- Commit 0006: catalog audit checkpoint 001; verified rule profile tranche 0001 is covered by the queryable validation catalog.
