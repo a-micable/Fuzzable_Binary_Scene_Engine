@@ -255,3 +255,5 @@ Recommended sequence toward a larger history:
 - Commit 0125: catalog audit checkpoint 120; verified rule profile tranche 0120 is covered by the queryable validation catalog.
 
 - Commit 0126: catalog audit checkpoint 121; verified rule profile tranche 0121 is covered by the queryable validation catalog.
+
+- Commit 0127: catalog audit checkpoint 122; verified rule profile tranche 0122 is covered by the queryable validation catalog.
