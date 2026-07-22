@@ -83,3 +83,5 @@ Recommended sequence toward a larger history:
 - Commit 0039: catalog audit checkpoint 034; verified rule profile tranche 0034 is covered by the queryable validation catalog.
 
 - Commit 0040: catalog audit checkpoint 035; verified rule profile tranche 0035 is covered by the queryable validation catalog.
+
+- Commit 0041: catalog audit checkpoint 036; verified rule profile tranche 0036 is covered by the queryable validation catalog.
