@@ -1,5 +1,4 @@
 language: c++
-main_repo: local/binary-scene-engine
 sanitizers:
   - address
   - undefined

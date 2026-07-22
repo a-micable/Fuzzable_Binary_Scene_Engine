@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
-project(BinarySceneEngine VERSION 0.1.0 LANGUAGES CXX)
+project(BinarySceneEngine
+  VERSION 0.1.0
+  DESCRIPTION "A deterministic C++17 binary scene parsing and serialization engine"
+  LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,6 +11,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 option(BSE_BUILD_TESTS "Build unit tests" ON)
 option(BSE_BUILD_EXAMPLES "Build examples" ON)
 option(BSE_BUILD_FUZZERS "Build fuzz targets" OFF)
+option(BSE_BUILD_BENCHMARKS "Build lightweight benchmarks" OFF)
+option(BSE_STANDALONE_FUZZERS "Build fuzz targets with a local corpus-file driver" OFF)
 
 file(GLOB_RECURSE BSE_MODULE_SOURCES CONFIGURE_DEPENDS
     src/*/*.cpp

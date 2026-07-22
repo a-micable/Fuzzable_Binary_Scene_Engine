@@ -2,6 +2,8 @@
 
 Binary Scene Engine is a private C++17 library for parsing, validating, manipulating, and exporting a custom binary 3D scene format. It includes a staged parser, scene graph, meshes, materials, texture metadata, animation channels, skeleton data types, cameras, lights, serialization, compression, validation, resource caching, logging, examples, tests, fuzz targets, and ClusterFuzzLite configuration.
 
+The expanded tree also carries a queryable validation-rule catalog and metrics tooling for measuring working code while filtering out blanks, comments, build output, seed corpora, and generated-looking boilerplate.
+
 ## Build
 
 ```bash
@@ -13,3 +15,9 @@ ctest --test-dir build --output-on-failure
 ## Format
 
 Files start with a `BSEN` header, version, section table offsets, object/string table offsets, file size, checksum, and flags. Sections are independently bounded and may be compressed with the project RLE codec. Scene objects reference each other by stable 32-bit IDs.
+
+## Tools
+
+```bash
+./build/bse_metrics .
+```
