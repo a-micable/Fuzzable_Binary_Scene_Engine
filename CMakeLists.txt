@@ -41,6 +41,8 @@ if(BSE_BUILD_EXAMPLES)
     target_link_libraries(bse_dump PRIVATE binary_scene_engine)
     add_executable(bse_roundtrip examples/roundtrip.cpp)
     target_link_libraries(bse_roundtrip PRIVATE binary_scene_engine)
+    add_executable(bse_metrics tools/metrics.cpp)
+    target_link_libraries(bse_metrics PRIVATE binary_scene_engine)
 endif()
 
 if(BSE_BUILD_FUZZERS)
