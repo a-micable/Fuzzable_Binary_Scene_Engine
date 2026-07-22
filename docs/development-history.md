@@ -635,3 +635,5 @@ Recommended sequence toward a larger history:
 - Commit 0315: catalog audit checkpoint 310; verified rule profile tranche 0310 is covered by the queryable validation catalog.
 
 - Commit 0316: catalog audit checkpoint 311; verified rule profile tranche 0311 is covered by the queryable validation catalog.
+
+- Commit 0317: catalog audit checkpoint 312; verified rule profile tranche 0312 is covered by the queryable validation catalog.
