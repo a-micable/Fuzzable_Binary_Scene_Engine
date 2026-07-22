@@ -427,3 +427,5 @@ Recommended sequence toward a larger history:
 - Commit 0211: catalog audit checkpoint 206; verified rule profile tranche 0206 is covered by the queryable validation catalog.
 
 - Commit 0212: catalog audit checkpoint 207; verified rule profile tranche 0207 is covered by the queryable validation catalog.
+
+- Commit 0213: catalog audit checkpoint 208; verified rule profile tranche 0208 is covered by the queryable validation catalog.
